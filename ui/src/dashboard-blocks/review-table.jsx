@@ -18,89 +18,298 @@ source: { type: DataTypes.STRING, allowNull: false }, // google, apple, facebook
     keywords: { type: DataTypes.STRING, allowNull: false },
  */
 
+// calculate average sentiment by sentimentsCompound column
+const calculateAverageSentiment = (reviews) => {
+  const sentimentsCompound = reviews.map((review) => {
+    return review.sentimentsCompound;
+  });
+
+  const sum = sentimentsCompound.reduce((a, b) => a + b, 0);
+  const avg = sum / sentimentsCompound.length || 0;
+
+  return avg;
+};
+
+// persantage of negative and very negative reviews
+const calculateNegativeReviews = (reviews) => {
+  const sentimentsCompound = reviews.map((review) => {
+    return review.sentimentsCompound;
+  });
+
+  const negativeReviews = sentimentsCompound.filter((compound) => {
+    return compound <= -0.05;
+  });
+
+  // round to 2 decimal places
+
+  return (
+    Math.round((negativeReviews.length / sentimentsCompound.length) * 100) / 100
+  );
+};
+
+// find 10 most used keywords in reviews by keywords column
+const findMostUsedKeywords = (reviews) => {
+  const keywords = reviews.map((review) => {
+    return review.keywords;
+  });
+
+  const keywordsArray = keywords.join(",").split(",");
+  const keywordsCount = {};
+
+  keywordsArray.forEach((keyword) => {
+    if (keywordsCount[keyword]) {
+      keywordsCount[keyword] += 1;
+    } else {
+      keywordsCount[keyword] = 1;
+    }
+  });
+
+  const keywordsCountArray = Object.entries(keywordsCount);
+  const sortedKeywordsCountArray = keywordsCountArray.sort(
+    (a, b) => b[1] - a[1]
+  );
+  const top10Keywords = sortedKeywordsCountArray.slice(0, 10);
+
+  return top10Keywords;
+};
+
+const getSentimentText = (compound) => {
+  if (compound >= 0.05) {
+    return "Very positive";
+  } else if (compound > 0 && compound < 0.05) {
+    return "Positive";
+  } else if (compound > -0.05 && compound < 0) {
+    return "Negative";
+  } else if (compound <= -0.05) {
+    return "Very negative";
+  } else {
+    return "Neutral";
+  }
+};
+
+const sources = [
+  "App Store",
+  "Google Play",
+  "Faceboob",
+  "Twitter",
+  "Instagram",
+  "Youtube",
+  "Reddit",
+];
+
+const sentiments = [
+  "Positive",
+  "Very positive",
+  "Neutral",
+  "Negative",
+  "Very negative",
+];
+
 export default function ReviewTable() {
   const [reviews, setReviews] = useState([]);
   const [filteredReviews, setFilteredReviews] = useState([]);
   const [search, setSearch] = useState("");
-  const [source, setSource] = useState("App Store");
-  const [sentiment, setSentiment] = useState("Positive");
+
+  const [averageSentiment, setAverageSentiment] = useState(0);
+  const [negativeReviews, setNegativeReviews] = useState(0);
+  const [mostUsedKeywords, setMostUsedKeywords] = useState([]);
+
+  const getReviews = async () => {
+    try {
+      const response = await axios.get(URL);
+      const responseData = response?.data;
+
+      return responseData || [];
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   // get reviews by axios
   useEffect(() => {
-    const getReviews = async () => {
-      try {
-        const response = await axios.get(URL);
-        const responseData = response?.data;
-        setReviews(responseData);
-        setFilteredReviews(responseData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     getReviews();
   }, []);
 
   useEffect(() => {
-    const filtered = reviews.filter((review) => {
-      return review.source === source && review.sentimentText === sentiment;
-    });
+    let mounted = true;
+    getReviews().then((items) => {
+      if (mounted) {
+        const responseData = items;
 
+        setReviews(responseData);
+        setFilteredReviews(responseData);
+        setAverageSentiment(calculateAverageSentiment(responseData));
+        setNegativeReviews(calculateNegativeReviews(responseData));
+        setMostUsedKeywords(findMostUsedKeywords(responseData));
+      }
+    });
+    return () => (mounted = false);
+  }, []);
+
+  useEffect(() => {
     // search contains in review.reviewText
-    const filtered2 = filtered.filter((review) => {
+    const filtered2 = reviews.filter((review) => {
       return review.reviewText.includes(search);
     });
 
     setFilteredReviews(filtered2);
-  }, [source, sentiment, search, reviews]);
+  }, [search, reviews]);
+
+  const filterBySource = (source) => {
+    const filtered = reviews.filter((review) => {
+      return review.source === source;
+    });
+
+    setFilteredReviews(filtered);
+  };
+
+  const filterBySentiment = (sentiment) => {
+    const filtered = reviews.filter((review) => {
+      return review.sentimentText === sentiment;
+    });
+
+    setFilteredReviews(filtered);
+  };
+
+  // filter by keyword
+  const filterByKeyword = (keyword) => {
+    const filtered = reviews.filter((review) => {
+      return review.keywords.includes(keyword);
+    });
+
+    setFilteredReviews(filtered);
+  };
 
   return (
     <>
-      <div className="join">
-        <div>
-          <div>
-            <input
-              className="input input-bordered join-item"
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      <div>
+        <div className="stats shadow">
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="inline-block w-8 h-8 stroke-current"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
+            <div className="stat-title">Total Reviews</div>
+            <div className="stat-value">{reviews.length}</div>
+            <div className="stat-desc">Till Nov 1st</div>
           </div>
-        </div>
-        <select
-          className="select select-bordered join-item"
-          onChange={(e) => setSource(e.target.value)}
-        >
-          <option>App Store</option>
-          <option>Google Play</option>
-          <option>Faceboob</option>
-          <option>Twitter</option>
-          <option>Instagram</option>
-          <option>Youtube</option>
-          <option>Reddit</option>
-        </select>
 
-        <select
-          className="select select-bordered join-item"
-          onChange={(e) => setSentiment(e.target.value)}
-        >
-          <option>Positive</option>
-          <option>Very positive</option>
-          <option>Neutral</option>
-          <option>Negative</option>
-          <option>Very negative</option>
-        </select>
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="inline-block w-8 h-8 stroke-current"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                ></path>
+              </svg>
+            </div>
+            <div className="stat-title"> Overall Sentiment</div>
+            <div className="stat-value">
+              {getSentimentText(averageSentiment)}
+            </div>
+            <div className="stat-desc">↗︎ 400 (11%)</div>
+          </div>
 
-        <div className="indicator">
-          <span className="indicator-item badge badge-secondary">new</span>
-          <button className="btn join-item">Search</button>
+          <div className="stat">
+            <div className="stat-figure text-secondary">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                className="inline-block w-8 h-8 stroke-current"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                ></path>
+              </svg>
+            </div>
+            <div className="stat-title">Negative reviews </div>
+            <div className="stat-value">{negativeReviews * 100}%</div>
+            <div className="stat-desc">↘︎ 90 (14%)</div>
+          </div>
         </div>
       </div>
 
-    <div>
+      <div className="py-10">
+        <div className="w-full ">
+          <button
+            className="btn btn-secondary btn-outline btn-sm mr-2 mb-2"
+            onClick={() => {
+              setFilteredReviews(reviews);
+              setSearch("");
+            }}
+          >
+            All
+          </button>
 
+          {sources.map((source) => {
+            return (
+              <button
+                className="btn btn-secondary btn-outline btn-sm mr-2 mb-2"
+                key={source}
+                onClick={() => {
+                  filterBySource(source);
+                }}
+              >
+                {source}
+              </button>
+            );
+          })}
+            <br />
+          {sentiments.map((sentiment) => {
+            return (
+              <button
+                className="btn btn-accent btn-outline btn-sm mr-2 mb-2"
+                key={sentiment}
+                onClick={() => {
+                  filterBySentiment(sentiment);
+                }}
+              >
+                {sentiment}
+              </button>
+            );
+          })}
+ <br />
+          {mostUsedKeywords.map((keyword) => {
+            return (
+              <button
+                className="btn btn-outline btn-sm mr-2"
+                key={keyword[0]}
+                onClick={() => {
+                  filterByKeyword(keyword[0]);
+                }}
+              >
+                {keyword[0]}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="pt-2">
         Showing {filteredReviews.length} records from {reviews.length} records
-    </div>
-
+      </div>
 
       <table className="min-w-full">
         <tr>
