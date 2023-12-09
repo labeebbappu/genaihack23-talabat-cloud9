@@ -9,3 +9,7 @@ Interactive User Feedback Dashboard.
 Performance Metrics for trends and impact analysis.
 Seamless Feedback Loop Integration.
 Open-Source Code for transparency and collaboration.
+
+<a href="https://genaihack23-talabat-cloud9.tfmsworld.com" > Live demo</a>
+
+<a href="https://docs.google.com/presentation/d/1C0jSZ1M2VMHfSkEDoG6fx5oZfIPyyCaq4HF6-yEwpAw/edit?pli=1#slide=id.g2a3eb48360a_2_193" > The idea </a>
