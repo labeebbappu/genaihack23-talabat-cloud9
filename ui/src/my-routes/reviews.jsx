@@ -121,7 +121,7 @@ export default function Reviews() {
               >
                 <option>App Store</option>
                 <option>Google Play</option>
-                <option>Faceboob</option>
+                <option>Fecebook</option>
                 <option>Twitter</option>
                 <option>Instagram</option>
                 <option>Youtube</option>
