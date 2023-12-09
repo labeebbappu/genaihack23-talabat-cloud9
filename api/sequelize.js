@@ -10,7 +10,7 @@ const PASSWORD = process.env.SQL_DATABASE_PASSWORD;
 
 const sequelize = new Sequelize(SCHEMA, USER, PASSWORD, {
   host: HOST,
-  logging: true,
+  logging: false,
   dialect: 'mysql',
   dialectOptions: {
     ssl: {

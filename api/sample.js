@@ -7,6 +7,7 @@ const findone = async (id) => {
     }
     catch (err) {
         console.log(err);
+        return 'error';
     }
 }
 
@@ -23,7 +24,7 @@ const findall = async () => {
 const simpleCall = async () => {
  const reviewOne =  await findone(1);
 
- console.log(reviewOne);
+ console.log(reviewOne  , {reviewOne});
 } 
 
 simpleCall();
