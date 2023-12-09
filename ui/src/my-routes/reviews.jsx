@@ -5,6 +5,9 @@ import { ExcelRenderer } from "react-excel-renderer";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const httpServer = import.meta.env.VITE_SERVER_HTTP;
+const URL = httpServer + "/reviews/bulkadd";
+
 function generateRandomDate() {
   // Get the current date
   const now = new Date();
@@ -34,8 +37,7 @@ export default function Reviews() {
   const uploadReviews = async ({ newReviews }) => {
     try {
       setUploading(true);
-      const response = await axios.post(
-        "http://localhost:3000/reviews/bulkadd",
+      const response = await axios.post(URL,
         {
           newReviews,
           reviewSource,

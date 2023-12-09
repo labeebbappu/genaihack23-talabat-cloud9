@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const URL = "http://localhost:3000/reviews/all";
+const httpServer = import.meta.env.VITE_SERVER_HTTP;
+const URL = httpServer + "/reviews/all";
 
 /*
 source: { type: DataTypes.STRING, allowNull: false }, // google, apple, facebook, etc
