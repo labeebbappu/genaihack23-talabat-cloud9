@@ -1,15 +1,21 @@
-// import { useState } from 'react'
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
 import "./App.css";
+import { Routes, Route } from "react-router-dom";
+
+import Home from "./my-routes/home"; 
 
 function App() {
-  // const [count, setCount] = useState(0)
+   
 
   return (
     <>
-      <h1 className="text-3xl font-bold">Talabat review mining</h1>
-      <p className="text-xl">by Cloud9 on genaihack23</p>
+    
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+      </Routes>
+      
     </>
   );
 }
