@@ -1,30 +1,19 @@
  
-import { useState, useEffect } from "react";
-import { ExcelRenderer } from "react-excel-renderer";
+ 
+// import { useHistory } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 
 export default function Home() {
   // const [count, setCount] = useState(0)
+  // const history = useHistory();
+  let navigate = useNavigate(); 
 
-  const [cols, setCols] = useState([]);
-  const [rows, setRows] = useState([]);
-
-  const fileHandler = (event) => {
-    let fileObj = event.target.files[0];
-    ExcelRenderer(fileObj, (err, resp) => {
-      if (err) {
-        console.log(err);
-      } else {
-        setCols(resp.cols);
-        setRows(resp.rows);
-      }
-    });
-  };
-
-  useEffect(() => {
-    console.log("cols", cols);
-    console.log("rows", rows);
-  }, [cols, rows]);
+  const routeChange = () => { 
+    let path = `/reviews`; 
+    navigate(path);
+  }
+    
 
   return (
     <>
@@ -75,6 +64,7 @@ export default function Home() {
                       color: "#fff",
                       backgroundColor: "#dd5c35",
                     }}
+                    onClick={routeChange}
                   >
                     {"    "}
                     Get Started
