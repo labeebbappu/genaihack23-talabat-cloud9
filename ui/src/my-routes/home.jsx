@@ -77,7 +77,8 @@ export default function Home() {
                     }}
                   >
                     {"    "}
-                    Get Started{"    "}
+                    Get Started
+                    {"    "}
                   </button>
                 </div>
               </div>
